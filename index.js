@@ -27,9 +27,15 @@ async function run() {
         await client.connect();
 
         const classesCollection = client.db('languageClubDB').collection('classes')
+        const instructorsCollection = client.db('languageClubDB').collection('instructors')
 
         app.get('/popularClasses', async(req, res) => {
             const result = await classesCollection.find().limit(6).sort({students: -1}).toArray()
+            res.send(result)
+        })
+
+        app.get('/popularInstructors', async (req, res) => {
+            const result = await instructorsCollection.find().limit(6).sort({students: -1}).toArray()
             res.send(result)
         })
 
