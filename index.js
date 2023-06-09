@@ -29,23 +29,42 @@ async function run() {
         const classesCollection = client.db('languageClubDB').collection('classes')
         const instructorsCollection = client.db('languageClubDB').collection('instructors')
 
-        app.get('/popularClasses', async(req, res) => {
-            const result = await classesCollection.find().limit(6).sort({students: -1}).toArray()
+        const usersCollection = client.db('languageClubDB').collection('users')
+
+        app.get('/popularClasses', async (req, res) => {
+            const result = await classesCollection.find().limit(6).sort({ students: -1 }).toArray()
             res.send(result)
         })
 
         app.get('/popularInstructors', async (req, res) => {
-            const result = await instructorsCollection.find().limit(6).sort({students: -1}).toArray()
+            const result = await instructorsCollection.find().limit(6).sort({ students: -1 }).toArray()
             res.send(result)
         })
 
         app.get('/instructors', async (req, res) => {
-            const result = await instructorsCollection.find().toArray()
+            const query = { role: 'instructor' }
+            const result = await usersCollection.find(query).toArray()
             res.send(result)
         })
 
         app.get('/classes', async (req, res) => {
             const result = await classesCollection.find().toArray()
+            res.send(result)
+        })
+
+        app.post('/users', async (req, res) => {
+            const user = req.body;
+            const query = { email: user.email }
+            const existingUser = await usersCollection.findOne(query)
+            if (existingUser) {
+                return res.send({ message: 'User already exist' })
+            }
+            const result = await usersCollection.insertOne(user)
+            res.send(result)
+        })
+
+        app.get('/users', async (req, res) => {
+            const result = await usersCollection.find().toArray()
             res.send(result)
         })
 
