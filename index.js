@@ -49,6 +49,7 @@ async function run() {
         const classesCollection = client.db('languageClubDB').collection('classes')
         const instructorsCollection = client.db('languageClubDB').collection('instructors')
         const usersCollection = client.db('languageClubDB').collection('users')
+        const selectedClassesCollection = client.db('languageClubDB').collection('selectedClasses')
 
         // jwt apis
         app.post('/jwt', (req, res) => {
@@ -107,6 +108,13 @@ async function run() {
                 return res.send({ message: 'User already exist' })
             }
             const result = await usersCollection.insertOne(user)
+            res.send(result)
+        })
+
+        app.post('/selectedClasses', async (req, res) => {
+            const selectedClass = req.body;
+            // selectedClass.availableSeats = parseInt(availableSeats) - 1
+            const result = await selectedClassesCollection.insertOne(selectedClass)
             res.send(result)
         })
 
