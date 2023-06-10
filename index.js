@@ -3,6 +3,7 @@ const cors = require('cors')
 const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
+const stripe = require('stripe')(process.env.PAYMENT_SECRET_KEY)
 const app = express()
 const port = process.env.PORT || 5000
 
@@ -50,6 +51,7 @@ async function run() {
         const instructorsCollection = client.db('languageClubDB').collection('instructors')
         const usersCollection = client.db('languageClubDB').collection('users')
         const selectedClassesCollection = client.db('languageClubDB').collection('selectedClasses')
+        const paymentCollection = client.db('languageClubDB').collection('payments')
 
         // jwt apis
         app.post('/jwt', (req, res) => {
@@ -100,6 +102,13 @@ async function run() {
             res.send(result)
         })
 
+        app.get('/selectedClasses/:email', async (req, res) => {
+            const email = req.params.email
+            const query = { email: email }
+            const result = await selectedClassesCollection.find(query).toArray()
+            res.send(result)
+        })
+
         app.post('/users', async (req, res) => {
             const user = req.body;
             const query = { email: user.email }
@@ -134,7 +143,7 @@ async function run() {
             const id = req.params.id
             const selectedClass = req.body
             // console.log(id)
-            // console.log(selectedClass)
+            console.log(selectedClass)
 
             const filter = { _id: new ObjectId(id) }
 
@@ -148,6 +157,34 @@ async function run() {
             res.send(result)
         })
 
+        // stripe apis
+        app.post('/create-payment-intent', verifyJWT, async (req, res) => {
+            const { price } = req.body
+            const amount = price * 100
+            // const amountInt = parseInt(amount)
+            // console.log(amountInt)
+
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: parseInt(amount),
+                currency: 'usd',
+                payment_method_types: ['card']
+            });
+
+            res.send({
+                clientSecret: paymentIntent.client_secret
+            })
+        })
+
+        app.post('/payments', verifyJWT, async (req, res) => {
+            const payment = req.body;
+            const insertResult = await paymentCollection.insertOne(payment)
+
+            const query = { _id: { $in: payment.cartItems.map(id => new ObjectId(id)) } }
+
+            const deleteResult = selectedClassesCollection.deleteMany(query)
+
+            res.send({ insertResult, deleteResult })
+        })
 
 
 
