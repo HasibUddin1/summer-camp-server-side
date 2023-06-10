@@ -111,9 +111,20 @@ async function run() {
             res.send(result)
         })
 
-        app.post('/selectedClasses', async (req, res) => {
+        app.post('/selectedClasses/:id', async (req, res) => {
             const selectedClass = req.body;
             // selectedClass.availableSeats = parseInt(availableSeats) - 1
+
+            const id = req.params.id;
+            // console.log(id)
+
+            const query = { selectedClassId: id, email: selectedClass.email }
+
+            const existingClass = await selectedClassesCollection.findOne(query)
+
+            if (existingClass) {
+                return res.send({ message: 'You already added this class' });
+            }
 
             const result = await selectedClassesCollection.insertOne(selectedClass)
             res.send(result)
@@ -122,8 +133,11 @@ async function run() {
         app.patch('/selectedClasses/:id', async (req, res) => {
             const id = req.params.id
             const selectedClass = req.body
+            // console.log(id)
+            // console.log(selectedClass)
 
             const filter = { _id: new ObjectId(id) }
+
             const updateDoc = {
                 $set: {
                     availableSeats: parseInt(selectedClass.availableSeats) - 1
