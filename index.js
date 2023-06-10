@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors')
 const jwt = require('jsonwebtoken');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
 const app = express()
 const port = process.env.PORT || 5000
@@ -114,7 +114,23 @@ async function run() {
         app.post('/selectedClasses', async (req, res) => {
             const selectedClass = req.body;
             // selectedClass.availableSeats = parseInt(availableSeats) - 1
+
             const result = await selectedClassesCollection.insertOne(selectedClass)
+            res.send(result)
+        })
+
+        app.patch('/selectedClasses/:id', async (req, res) => {
+            const id = req.params.id
+            const selectedClass = req.body
+
+            const filter = { _id: new ObjectId(id) }
+            const updateDoc = {
+                $set: {
+                    availableSeats: parseInt(selectedClass.availableSeats) - 1
+                }
+            }
+
+            const result = await classesCollection.updateOne(filter, updateDoc)
             res.send(result)
         })
 
