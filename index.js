@@ -62,6 +62,16 @@ async function run() {
             res.send({ token })
         })
 
+        const verifyAdmin = async (req, res, next) => {
+            const email = req.decoded.email
+            const query = { email: email }
+            const user = await usersCollection.findOne(query)
+            if (user.role !== 'admin') {
+                return res.status(403).send({ message: 'forbidden access' })
+            }
+            next()
+        }
+
 
         app.get('/popularClasses', async (req, res) => {
             const result = await classesCollection.find().limit(6).sort({ students: -1 }).toArray()
@@ -86,7 +96,7 @@ async function run() {
 
         // users apis
 
-        app.get('/users', async (req, res) => {
+        app.get('/users', verifyJWT, verifyAdmin, async (req, res) => {
             const result = await usersCollection.find().toArray()
             res.send(result)
         })
@@ -114,6 +124,19 @@ async function run() {
             const query = { email: email }
             const user = await usersCollection.findOne(query)
             const result = { student: user.role === 'student' }
+            res.send(result)
+        })
+
+        app.get('/users/instructor/:email', verifyJWT, async (req, res) => {
+            const email = req.params.email
+
+            if (req.decoded.email !== email) {
+                res.send({ instructor: false })
+            }
+
+            const query = { email: email }
+            const user = await usersCollection.findOne(query)
+            const result = { instructor: user.role === 'instructor' }
             res.send(result)
         })
 
@@ -201,20 +224,18 @@ async function run() {
             res.send({ insertResult, deleteResult })
         })
 
-        // payment collection related apis
-
-
+        // payment history related apis
 
         app.get('/enrolledClasses/:email', async (req, res) => {
             const email = req.params.email
-            const payments = await paymentCollection.find({email: email}).toArray()
+            const payments = await paymentCollection.find({ email: email }).toArray()
 
             const selectedClassesId = payments.flatMap(payment => payment.selectedClassesId)
 
             const classes = await classesCollection.aggregate([
                 {
                     $match: {
-                        _id: {$in: selectedClassesId.map(id => new ObjectId(id))}
+                        _id: { $in: selectedClassesId.map(id => new ObjectId(id)) }
                     }
                 }
             ]).toArray()
