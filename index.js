@@ -84,8 +84,23 @@ async function run() {
             res.send(result)
         })
 
+        // users apis
+
         app.get('/users', async (req, res) => {
             const result = await usersCollection.find().toArray()
+            res.send(result)
+        })
+
+        app.get('/users/admin/:email', verifyJWT, async (req, res) => {
+            const email = req.params.email;
+
+            if (req.decoded.email !== email) {
+                res.send({ admin: false })
+            }
+
+            const query = { email: email }
+            const user = await usersCollection.findOne(query)
+            const result = { admin: user.role === 'admin' }
             res.send(result)
         })
 
@@ -143,7 +158,7 @@ async function run() {
             const id = req.params.id
             const selectedClass = req.body
             // console.log(id)
-            console.log(selectedClass)
+            // console.log(selectedClass)
 
             const filter = { _id: new ObjectId(id) }
 
@@ -186,6 +201,25 @@ async function run() {
             res.send({ insertResult, deleteResult })
         })
 
+        // payment collection related apis
+
+
+
+        app.get('/enrolledClasses/:email', async (req, res) => {
+            const email = req.params.email
+            const payments = await paymentCollection.find({email: email}).toArray()
+
+            const selectedClassesId = payments.flatMap(payment => payment.selectedClassesId)
+
+            const classes = await classesCollection.aggregate([
+                {
+                    $match: {
+                        _id: {$in: selectedClassesId.map(id => new ObjectId(id))}
+                    }
+                }
+            ]).toArray()
+            res.send(classes)
+        })
 
 
         // Send a ping to confirm a successful connection
