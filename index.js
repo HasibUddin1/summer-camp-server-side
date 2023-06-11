@@ -91,7 +91,7 @@ async function run() {
 
         // classes apis
         app.get('/classes', async (req, res) => {
-            const query = {status: 'approved'}
+            const query = { status: 'approved' }
             const result = await classesCollection.find(query).toArray()
             res.send(result)
         })
@@ -100,6 +100,34 @@ async function run() {
             const result = await classesCollection.find().toArray()
             res.send(result)
         })
+
+        app.patch('/approveClass/:id', async (req, res) => {
+            const id = req.params.id
+            const filter = { _id: new ObjectId(id) }
+            const updateDoc = {
+                $set: {
+                    status: 'approved'
+                }
+            }
+
+            const result = await classesCollection.updateOne(filter, updateDoc)
+            res.send(result)
+        })
+
+        app.patch('/denyClass/:id', async (req, res) => {
+            const id = req.params.id
+            const filter = { _id: new ObjectId(id) }
+            const updateDoc = {
+                $set: {
+                    status: 'denied'
+                }
+            }
+
+            const result = await classesCollection.updateOne(filter, updateDoc)
+            res.send(result)
+        })
+
+        // classes apis end
 
         // users apis
 
