@@ -307,6 +307,8 @@ async function run() {
             })
         })
 
+        // payment apis
+
         app.post('/payments', verifyJWT, async (req, res) => {
             const payment = req.body;
             const insertResult = await paymentCollection.insertOne(payment)
@@ -316,6 +318,13 @@ async function run() {
             const deleteResult = selectedClassesCollection.deleteMany(query)
 
             res.send({ insertResult, deleteResult })
+        })
+
+        app.get('/payments/:email', async (req, res) => {
+            const email = req.params.email
+            const query = { email: email }
+            const result = await paymentCollection.find(query).sort({ date: -1 }).toArray()
+            res.send(result)
         })
 
         // payment history related apis
