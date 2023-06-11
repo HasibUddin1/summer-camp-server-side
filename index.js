@@ -89,7 +89,14 @@ async function run() {
             res.send(result)
         })
 
+        // classes apis
         app.get('/classes', async (req, res) => {
+            const query = {status: 'approved'}
+            const result = await classesCollection.find(query).toArray()
+            res.send(result)
+        })
+
+        app.get('/adminClasses', async (req, res) => {
             const result = await classesCollection.find().toArray()
             res.send(result)
         })
