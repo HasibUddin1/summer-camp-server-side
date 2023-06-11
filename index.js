@@ -127,6 +127,21 @@ async function run() {
             res.send(result)
         })
 
+        app.post('/addAClass', async (req, res) => {
+            const classInfo = req.body
+            classInfo.price = parseFloat(classInfo.price)
+            classInfo.availableSeats = parseInt(classInfo.availableSeats)
+            const result = await classesCollection.insertOne(classInfo)
+            res.send(result)
+        })
+
+        app.get('/instructorClasses/:email', async (req, res) => {
+            const email = req.params.email
+            const query = { instructorEmail: email }
+            const result = await classesCollection.find(query).toArray()
+            res.send(result)
+        })
+
         // classes apis end
 
         // users apis
@@ -253,6 +268,20 @@ async function run() {
             const updateDoc = {
                 $set: {
                     availableSeats: parseInt(selectedClass.availableSeats) - 1
+                }
+            }
+
+            const result = await classesCollection.updateOne(filter, updateDoc)
+            res.send(result)
+        })
+
+        app.patch('/updateStudentsCount/:id', async (req, res) => {
+            const id = req.params.id
+            const selectedClass = req.body
+            const filter = { _id: new ObjectId(id) }
+            const updateDoc = {
+                $set: {
+                    students: parseInt(selectedClass.students) + 1
                 }
             }
 
