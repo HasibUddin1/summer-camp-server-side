@@ -127,6 +127,22 @@ async function run() {
             res.send(result)
         })
 
+        app.put('/sendFeedback/:id', async (req, res) => {
+            const id = req.params.id
+            const { feedback } = req.body
+            const filter = { _id: new ObjectId(id) }
+            const options = { upsert: true };
+
+            const updateDoc = {
+                $set: {
+                    feedback: feedback
+                }
+            }
+
+            const result = await classesCollection.updateOne(filter, updateDoc, options)
+            res.send(result)
+        })
+
         app.post('/addAClass', async (req, res) => {
             const classInfo = req.body
             classInfo.price = parseFloat(classInfo.price)
