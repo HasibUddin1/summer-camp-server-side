@@ -160,8 +160,32 @@ async function run() {
 
         app.get('/getAClassToUpdate/:id', async (req, res) => {
             const id = req.params.id
-            const query = { _id: new ObjectId(id)}
+            const query = { _id: new ObjectId(id) }
             const result = await classesCollection.findOne(query)
+            res.send(result)
+        })
+
+        app.put('/updateAClass/:id', async (req, res) => {
+            const id = req.params.id
+            const updateClassInfo = req.body
+            const filter = { _id: new ObjectId(id)}
+            const options = { upsert: true };
+            
+            const updateDoc = {
+                $set: {
+                    name: updateClassInfo.name,
+                    image: updateClassInfo.image,
+                    instructorName: updateClassInfo.instructorName,
+                    instructorEmail: updateClassInfo.instructorEmail,
+                    availableSeats: updateClassInfo.availableSeats,
+                    price: updateClassInfo.price,
+                    status: updateClassInfo.status,
+                    students: updateClassInfo.students,
+                    feedback: updateClassInfo?.feedback
+                }
+            }
+
+            const result = await classesCollection.updateOne(filter, updateDoc, options)
             res.send(result)
         })
 
