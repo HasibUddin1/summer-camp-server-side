@@ -289,6 +289,13 @@ async function run() {
             res.send(result)
         })
 
+        app.delete('/deleteSelectedClasses/:id', async (req, res) => {
+            const id = req.params.id
+            const query = { _id: new ObjectId(id) }
+            const result = await selectedClassesCollection.deleteOne(query)
+            res.send(result)
+        })
+
         // stripe apis
         app.post('/create-payment-intent', verifyJWT, async (req, res) => {
             const { price } = req.body
